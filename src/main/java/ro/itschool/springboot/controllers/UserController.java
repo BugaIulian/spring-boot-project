@@ -1,5 +1,7 @@
 package ro.itschool.springboot.controllers;
 
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ro.itschool.springboot.models.dtos.UserDTO;
 import ro.itschool.springboot.services.UserService;
@@ -10,21 +12,28 @@ import java.util.List;
 public class UserController {
 
     private UserService userService;
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
     @PostMapping("/api/users")
-    public UserDTO createUser(@RequestBody UserDTO userDTO) {
-        return userService.createUser(userDTO);
+    public ResponseEntity<UserDTO> createUser(@RequestBody @Valid UserDTO userDTO) {
+        return ResponseEntity.ok(userService.createUser(userDTO));
+    }
+
+    @PutMapping("/api/users")
+    public ResponseEntity<UserDTO> updateUser(@RequestBody @Valid UserDTO userDTO) {
+        return ResponseEntity.ok(userService.updateUser(userDTO));
     }
 
     @GetMapping("/api/users")
-    public List<UserDTO> getUsers() {
-        return userService.getUsers();
+    public ResponseEntity<List<UserDTO>> getUsers() {
+        return ResponseEntity.ok(userService.getUsers());
     }
 
     @DeleteMapping("/api/users/{name}")
-    public UserDTO deleteUserByName(@PathVariable String name) {
-        return userService.deleteUserByName(name);
+    public ResponseEntity<UserDTO> deleteUserByName(@PathVariable String name) {
+        return ResponseEntity.ok(userService.deleteUserByName(name));
     }
 }
