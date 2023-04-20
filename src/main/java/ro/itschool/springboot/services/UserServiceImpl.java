@@ -2,8 +2,11 @@ package ro.itschool.springboot.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
+import ro.itschool.springboot.models.dtos.OrderDTO;
 import ro.itschool.springboot.models.dtos.UserDTO;
-import ro.itschool.springboot.models.entities.User;
+import ro.itschool.springboot.models.entities.OrderEntity;
+import ro.itschool.springboot.models.entities.UserEntity;
+import ro.itschool.springboot.repositories.OrderRepository;
 import ro.itschool.springboot.repositories.UserRepository;
 
 import java.util.ArrayList;
@@ -13,18 +16,20 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
+    private OrderRepository orderRepository;
     private ObjectMapper objectMapper;
 
-    public UserServiceImpl(UserRepository userRepository, ObjectMapper objectMapper) {
+    public UserServiceImpl(UserRepository userRepository, ObjectMapper objectMapper, OrderRepository orderRepository) {
         this.userRepository = userRepository;
         this.objectMapper = objectMapper;
+        this.orderRepository = orderRepository;
     }
 
     @Override
     public UserDTO createUser(UserDTO userDTO) {
-        User userToSave = objectMapper.convertValue(userDTO, User.class);
-        User userSaved = userRepository.save(userToSave);
-        UserDTO userSavedDTO = objectMapper.convertValue(userSaved, UserDTO.class);
+        UserEntity userEntityToSave = objectMapper.convertValue(userDTO, UserEntity.class);
+        UserEntity userEntitySaved = userRepository.save(userEntityToSave);
+        UserDTO userSavedDTO = objectMapper.convertValue(userEntitySaved, UserDTO.class);
         return userSavedDTO;
     }
 
@@ -35,10 +40,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDTO> getUsers() {
-        List<User> savedUsers = userRepository.findAll();
+        List<UserEntity> savedUserEntities = userRepository.findAll();
         List<UserDTO> savedUsersDTO = new ArrayList<>();
-        savedUsers.forEach(user -> {
-            savedUsersDTO.add(objectMapper.convertValue(user, UserDTO.class));
+        savedUserEntities.forEach(userEntity -> {
+            savedUsersDTO.add(objectMapper.convertValue(userEntity, UserDTO.class));
         });
         return savedUsersDTO;
     }
@@ -46,5 +51,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUserById(long id) {
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public OrderDTO createOrder(Long userId, OrderDTO orderDTO) {
+        UserEntity userFound = userRepository.findById(userId).orElseThrow();
+        OrderEntity order = objectMapper.convertValue(orderDTO, OrderEntity.class);
+        order.setUser(userFound);
+        OrderEntity orderSaved = orderRepository.save(order);
+        return objectMapper.convertValue(orderSaved, OrderDTO.class);
     }
 }
