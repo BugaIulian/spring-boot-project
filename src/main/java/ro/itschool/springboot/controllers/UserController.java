@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 public class UserController {
 
-    private UserService userService;
+    private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
@@ -32,8 +32,8 @@ public class UserController {
         return ResponseEntity.ok(userService.getUsers());
     }
 
-    @DeleteMapping("/api/users/{name}")
-    public ResponseEntity<UserDTO> deleteUserByName(@PathVariable String name) {
-        return ResponseEntity.ok(userService.deleteUserByName(name));
+    @DeleteMapping("/api/users/{id}")
+    public void deleteUserById(@PathVariable long id) {
+        userService.deleteUserById(id);
     }
 }

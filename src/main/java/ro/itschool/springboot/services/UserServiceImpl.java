@@ -1,7 +1,10 @@
 package ro.itschool.springboot.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import ro.itschool.springboot.models.dtos.UserDTO;
+import ro.itschool.springboot.models.entities.User;
+import ro.itschool.springboot.repositories.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,49 +12,39 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements UserService {
 
-    List<UserDTO> userDTOList = new ArrayList<>();
+    private UserRepository userRepository;
+    private ObjectMapper objectMapper;
+
+    public UserServiceImpl(UserRepository userRepository, ObjectMapper objectMapper) {
+        this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public UserDTO createUser(UserDTO userDTO) {
-        userDTOList.add(userDTO);
-        return userDTO;
+        User userToSave = objectMapper.convertValue(userDTO, User.class);
+        User userSaved = userRepository.save(userToSave);
+        UserDTO userSavedDTO = objectMapper.convertValue(userSaved, UserDTO.class);
+        return userSavedDTO;
     }
 
     @Override
     public UserDTO updateUser(UserDTO userDTO) {
-        for (int index = 0; index < userDTOList.size(); index++) {
-            if (userDTOList.get(index).getName().equalsIgnoreCase(userDTO.getName())) {
-                userDTOList.get(index).setEmail(userDTO.getEmail());
-                userDTOList.get(index).setAge(userDTO.getAge());
-                return userDTOList.get(index);
-            }
-        }
-
-        for (UserDTO user : userDTOList) {
-            if (user.getName().equalsIgnoreCase(userDTO.getName())) {
-                user.setName(user.getName());
-                user.setAge(user.getAge());
-                user.setEmail(user.getEmail());
-                return user;
-            }
-        }
         return null;
     }
 
     @Override
     public List<UserDTO> getUsers() {
-        return userDTOList;
+        List<User> savedUsers = userRepository.findAll();
+        List<UserDTO> savedUsersDTO = new ArrayList<>();
+        savedUsers.forEach(user -> {
+            savedUsersDTO.add(objectMapper.convertValue(user, UserDTO.class));
+        });
+        return savedUsersDTO;
     }
 
     @Override
-    public UserDTO deleteUserByName(String name) {
-
-        for (UserDTO user : userDTOList) {
-            if (user.getName().equalsIgnoreCase(name)) {
-                userDTOList.remove(user);
-                return user;
-            }
-        }
-        return null;
+    public void deleteUserById(long id) {
+        userRepository.deleteById(id);
     }
 }
